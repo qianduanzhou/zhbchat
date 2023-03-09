@@ -1,0 +1,102 @@
+@import 'assets/css/common/index.scss';
+.login {
+  background: #F1F5F7;
+  width: 100%;
+  height: 100%;
+  .loginBlock {
+    @include flex-column-level-center;
+    width: 520px;
+    height: 670px;
+    padding: 50px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #FFFFFF;
+    box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.08);
+    border-radius: 4px;
+    .title {
+      font-size: 32px;
+      font-family: PingFangSC-Medium, PingFang SC;
+      font-weight: bold;
+      color: #2C353E;
+      line-height: 44px;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .tip {
+      font-size: 14px;
+      font-family: PingFangSC-Regular, PingFang SC;
+      color: #74788D;
+      line-height: 20px;
+      text-align: center;
+    }
+    .form {
+      margin-top: 40px;
+      .input {
+        width: 420px;
+        height: 60px;
+        border-radius: 8px;
+        border: 1px solid #CED4DA;
+        :global {
+          .ant-input-prefix {
+            margin-right: 20px;
+            color: #5664D2;
+            margin-left: 8px;
+          }
+        }
+      }
+      .selectForm {
+        :global {
+          .ant-form-item-control-input {
+            width: 100%;
+          }
+          .ant-form-item-control-input-content {
+            width: 100%;
+            height: 60px;
+          } 
+          .ant-input {
+            width: calc(100% - 120px - 60px);
+          }
+        }
+      }
+      .select {
+        :global {
+          .ant-select-selector {
+            width: 420px;
+            height: 60px;
+            line-height: 60px;
+            border-radius: 8px;
+            border: 1px solid #CED4DA;
+            padding: 0;
+            .ant-select-selection-search {
+              left: 50px;
+            }
+            .ant-select-selection-placeholder, .ant-select-selection-item {
+              margin-left: 50px;
+              position: absolute;
+              top: 50%;
+              transform: translateY(-50%);
+            }
+    
+          }
+          .ant-select-arrow {
+            right: 20px;
+          }
+        }
+      }
+      .selectIcon {
+        position: absolute;
+        left: 20px;
+        top: 20px;
+        color: #5664D2;
+        font-size: 16px;
+      }
+      .themeBtn {
+        width: 420px;
+        height: 50px;
+        font-size: 16px;
+      }
+    }
+  }
+}
