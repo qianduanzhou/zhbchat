@@ -13,7 +13,9 @@ const userRoomInfo = {};
 
 //HTTP 服务
 let http_server = http.createServer(app);
-http_server.listen(8081, '127.0.0.1');
+http_server.listen(8081, '127.0.0.1', () => {
+  console.log('listening on *:8081');
+});
 
 const io = new Server(http_server, {
   cors: {
@@ -33,7 +35,7 @@ io.sockets.on('connection', socket => {
 
   socket.on('join', ({ roomId }) => {
     if (!roomId) return;
-
+    //加入房间
     socket.join(roomId);
 
     console.log(`${socket.id} join ${roomId}`);
@@ -59,10 +61,11 @@ io.sockets.on('connection', socket => {
 
       // 通知另一个用户， 有人来了
       if (userNum > 1) {
+        //向roomId的所有连接用户的群发消息
         socket.to(roomId).emit('otherjoined', { roomId, userId: socket.id });
       }
     } else {
-      // 如果房间里人满了
+      // 如果房间里人满了，离开房间
       socket.leave(roomId);
       // 回复用户房间满人了
       socket.emit('full', { roomId, userNum });

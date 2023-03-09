@@ -70,7 +70,6 @@ const Home = () => {
 
     //获取本地媒体数据
     const getLocalMediaStream = () => {
-      console.log(' navigator.mediaDevices',  navigator.mediaDevices);
       navigator.mediaDevices.getUserMedia({ audio: false, video: true }).then(mediaStream => {
         console.log('------ 成功获取本地设备媒体数据:', mediaStream);
         if (mediaStream) {
@@ -136,7 +135,7 @@ const Home = () => {
     // 获取本地sdp(offer)
     pc?.createOffer().then(offer => {
       console.log('------ 获取到了本地offer', offer);
-
+      
       // 绑定本地sdp
       pc.setLocalDescription(offer);
 
