@@ -3,11 +3,15 @@ import styles from './index.module.scss';
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { Button, Input, message } from 'antd';
 import SignalServer from 'utils/SignalServer';
-
+const { TextArea } = Input;
 const pcOption = {};
 
-type State = 'init' | 'disconnect' | 'waiting' | 'canCall' | 'connecting';
-
+type State = 'socketDisConnected' | 'init' | 'disconnect' | 'waiting' | 'canCall' | 'connecting';
+interface msgObj {
+  name: string
+  text: string
+  isLocal: boolean
+}
 const Home = () => {
   // 远端传递过来的媒体数据
   const remoteMediaStream = useRef<MediaStream>();
@@ -18,12 +22,15 @@ const Home = () => {
   // 信令服务器对象
   const signalServer = useRef<SignalServer>();
   const peerConnection = useRef<RTCPeerConnection>();
-
-  const [roomId, setRoomId] = useState('');
-  const [state, setState] = useState<State>('disconnect');
-
+  const dataChannel = useRef<RTCDataChannel>();
+  const [roomId, setRoomId] = useState('');//房间号
+  const [state, setState] = useState<State>('socketDisConnected');//连接状态
+  const [msg, setMsg] = useState('');//发送消息
+  const [msgList, setMsgList] = useState([]);//消息列表
   const tip = useMemo(() => {
     switch (state) {
+      case 'socketDisConnected':
+        return '等待socket连接';
       case 'init':
         return '正在获取媒体数据...';
       case 'disconnect':
@@ -41,13 +48,14 @@ const Home = () => {
 
   useEffect(() => {
     // 初始化信令服务器
-    signalServer.current = new SignalServer({ onMessage, onJoined, onOtherJoined });
+    signalServer.current = new SignalServer({ onMessage, onJoined, onOtherJoined, onConnect });
 
     const initPeerConnection = () => {
       console.log('------ 初始化本地pc对象');
       // 创建pc实例
       peerConnection.current = new RTCPeerConnection(pcOption);
       const pc = peerConnection.current;
+
       // 监听 candidate 获取事件
       pc.addEventListener('icecandidate', event => {
         const candidate = event.candidate;
@@ -66,21 +74,41 @@ const Home = () => {
           remoteVideo.current.srcObject = e.streams[0];
         }
       });
+
+      // 创建通道
+      dataChannel.current = pc.createDataChannel('sendDataChannel');
+
+      // 监听通道
+      peerConnection?.current?.addEventListener('datachannel', onGetRemoteDatachannel);
+
+      //监听通道打开
+      dataChannel.current.addEventListener('open', (e) => {
+        console.log('------ 本地通道已打开：', e);
+      })
+
+      //监听通道关闭
+      dataChannel.current.addEventListener('close', (e) => {
+        console.log('------ 本地通道已关闭：', e);
+      })
+      
     };
 
     //获取本地媒体数据
     const getLocalMediaStream = () => {
-      navigator.mediaDevices.getUserMedia({ audio: false, video: true }).then(mediaStream => {
+      navigator.mediaDevices.getUserMedia({ audio: false, video: {
+        width: 500,
+        height: 500
+      }}).then(mediaStream => {
         console.log('------ 成功获取本地设备媒体数据:', mediaStream);
         if (mediaStream) {
-          if(localVideo.current) localVideo.current.srcObject = mediaStream;
+          if (localVideo.current) localVideo.current.srcObject = mediaStream;
           localMediaStream.current = mediaStream;
 
           // 绑定本地媒体数据到pc对象上
           if (localMediaStream.current) {
             console.log('------ 绑定本地媒体数据到pc对象上');
             localMediaStream.current.getTracks().forEach(track => {
-              if(peerConnection.current) peerConnection.current.addTrack(track, localMediaStream.current as MediaStream);
+              if (peerConnection.current) peerConnection.current.addTrack(track, localMediaStream.current as MediaStream);
             });
           }
         }
@@ -104,12 +132,16 @@ const Home = () => {
   }, []);
 
   const join = () => {
-    if (!roomId || state !== 'disconnect') return;
+    if (!roomId || state !== 'disconnect') return message.success('请先启动信令服务器');
     signalServer?.current?.join(roomId);
     setState('waiting');
   };
 
-  const onJoined = ({ roomId, userNum }: { roomId : string | number, userNum: string | number }) => {
+  const onConnect = () => {
+    setState('disconnect');
+  }
+
+  const onJoined = ({ roomId, userNum }: { roomId: string | number, userNum: string | number }) => {
     message.success('成功加入房间,当前房间人数为:' + userNum);
     console.log('------ 成功加入房间,当前房间人数为:' + userNum);
 
@@ -135,7 +167,7 @@ const Home = () => {
     // 获取本地sdp(offer)
     pc?.createOffer().then(offer => {
       console.log('------ 获取到了本地offer', offer);
-      
+
       // 绑定本地sdp
       pc.setLocalDescription(offer);
 
@@ -146,6 +178,10 @@ const Home = () => {
       });
     });
   };
+
+  const sendMsg = () => {
+    if(dataChannel.current) dataChannel.current.send(msg)
+  }
 
   const onMessage = ({ type, value }: { type: string, value: any }) => {
     switch (type) {
@@ -203,38 +239,77 @@ const Home = () => {
     peerConnection?.current?.addIceCandidate(candidate);
   };
 
+  // 获取远端datachannel
+  const onGetRemoteDatachannel = (event: any) => {
+    const dc = event.channel;
+    console.log('------ 获取到了远端通道', event.channel);
+    //监听通道消息
+    dc.addEventListener('message', (e: any) => {
+      console.log('------ 远端通道消息：', e);
+    })
+    //监听通道打开
+    dc.addEventListener('open', (e: any) => {
+      console.log('------ 远端通道已打开：', e);
+    })
+    //监听通道关闭
+    dc.addEventListener('close', (e: any) => {
+      console.log('------ 远端通道已关闭：', e);
+    })
+  }
+
   return (
-    <div className="one-on-one">
-      <h1>Simple1v1{tip && `-${tip}`}</h1>
-      <div className="one-on-one-container">
-        <div className="one-on-one-operation">
-          <div className="room-selector operation-item">
-            <Input
-              value={roomId || undefined}
-              disabled={state !== 'disconnect'}
-              onChange={e => setRoomId(e.target.value)}
-              placeholder="请输入房间号"></Input>
-            <Button disabled={state !== 'disconnect'} onClick={join} type="primary">
-              加入房间
+    <div className={styles['home']}>
+      <h1 className={styles['home_title']}>实时通讯1v1{tip && `-${tip}`}</h1>
+      <main className={styles['main']}>
+        <div className={styles['main_operation']}>
+          <Input
+            value={roomId || undefined}
+            disabled={state !== 'disconnect'}
+            onChange={e => setRoomId(e.target.value)}
+            placeholder="请输入房间号" className={styles['main_operation_input']}></Input>
+          <Button disabled={state !== 'disconnect'} onClick={join} type="primary" className={styles['main_operation_btn']}>
+            加入房间
             </Button>
+          <Button disabled={state !== 'canCall'} onClick={call} type="primary" className={styles['main_operation_btn']}>
+            发起通讯
+            </Button>
+        </div>
+        <div className={styles['main_container']}>
+          <div className={styles['main_container_videoContainer']}>
+            <p className={styles['main_container_videoContainer_title']}>视频区域</p>
+            <div className={styles['main_container_videoContainer_content']}>
+              <div className={styles['main_container_videoContainer_content_local']}>
+                <video autoPlay controls ref={localVideo}></video>
+              </div>
+              <div className={styles['main_container_videoContainer_content_remote']}>
+                <video autoPlay controls ref={remoteVideo}></video>
+              </div>
+            </div>
           </div>
-          <div className="call-btn operation-item">
-            <Button disabled={state !== 'canCall'} onClick={call} type="primary">
-              call
-            </Button>
+          <div className={styles['main_container_chatContainer']}>
+            <p className={styles['main_container_chatContainer_title']}>聊天区域</p>
+            <div className={styles['main_container_chatContainer_acceptBlock']}>
+              {
+                msgList.map((msg: msgObj) => {
+                  return (
+                    <div className={`${styles['main_container_chatContainer_acceptBlock_item']} ${msg.isLocal ? styles['relative'] : ''}`}>
+                      <div className={styles['name']}>{msg.name}</div>
+                      <div className={styles['text']}>{msg.text}</div>
+                    </div>
+                  )
+                })
+              }
+            </div>
+            <div className={styles['main_container_chatContainer_sendBlock']}>
+              <TextArea disabled={state !== 'connecting'} value={msg || undefined} onChange={e => setMsg(e.target.value)} placeholder="请输入聊天信息" className={styles['main_container_chatContainer_sendBlock_input']}>
+              </TextArea>
+              <Button disabled={state !== 'connecting'} onClick={sendMsg} type="primary" className={styles['main_container_chatContainer_sendBlock_btn']}>
+                  发送
+              </Button>
+            </div>
           </div>
         </div>
-        <div className="videos">
-          <div className="local-container">
-            <h3>local-video</h3>
-            <video autoPlay controls ref={localVideo}></video>
-          </div>
-          <div className="remote-container">
-            <h3>remote-video</h3>
-            <video autoPlay controls ref={remoteVideo}></video>
-          </div>
-        </div>
-      </div>
+      </main>
     </div>
   );
 };

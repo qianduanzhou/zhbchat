@@ -1,6 +1,7 @@
 import { io, Socket } from 'socket.io-client';
 
 interface Option {
+  onConnect?: () => void,
   onJoined?: (message: { roomId: string; userNum: number }) => void;
   onOtherJoined?: (message: { roomId: string; userId: number }) => void;
   onMessage: (data: { type: string; value: any }) => void;
@@ -21,22 +22,27 @@ export default class SignalServer {
   init(option: Option) {
     this.socket = io(option.serverUrl || 'http://127.0.0.1:8081/');
     this.socket.connect();
-    
+    this.socket.on(
+      'connect', //判断socket是否已连接
+      option.onConnect || (() => {
+        console.log('socket connected');
+      })
+    )
     this.socket.on(
       'joined',
       option.onJoined ||
-        (({ roomId, usersNum }) => {
-          console.log('i joined a room', roomId);
-          console.log('current user number:', usersNum);
-        }),
+      (({ roomId, usersNum }) => {
+        console.log('i joined a room', roomId);
+        console.log('current user number:', usersNum);
+      }),
     );
 
     this.socket.on(
       'otherjoined',
       option.onOtherJoined ||
-        (({ roomId, userId }) => {
-          console.log('other user joined, userId', userId);
-        }),
+      (({ roomId, userId }) => {
+        console.log('other user joined, userId', userId);
+      }),
     );
 
     this.socket.on('message', option.onMessage);
@@ -44,20 +50,20 @@ export default class SignalServer {
     this.socket.on(
       'full',
       option.onFull ||
-        (({ roomId }) => {
-          console.log(roomId, 'is full');
-        }),
+      (({ roomId }) => {
+        console.log(roomId, 'is full');
+      }),
     );
 
     this.socket.on(
       'bye',
       option.onBye ||
-        (({ roomId, userId }) => {
-          console.log(userId, `leaved`, roomId);
-        }),
+      (({ roomId, userId }) => {
+        console.log(userId, `leaved`, roomId);
+      }),
     );
 
-    this.socket.on('leaved', option.onLeaved || (({ roomId }) => {}));
+    this.socket.on('leaved', option.onLeaved || (({ roomId }) => { }));
 
     window.addEventListener('beforeunload', () => {
       this.leave();

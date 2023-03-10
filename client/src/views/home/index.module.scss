@@ -1,1 +1,160 @@
 @import 'assets/css/common/index.scss';
+
+.home {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  &_title {
+    text-align: center;
+  }
+
+  .main {
+    &_operation {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &_input {
+        width: 200px;
+        margin-right: 20px;
+      }
+
+      &_btn {
+        margin-left: 10px;
+      }
+    }
+
+    &_container {
+      display: flex;
+      &_videoContainer {
+        padding: 10px;
+
+        &_title {
+          font-size: 16px;
+          font-weight: bold;
+          margin-bottom: 10px;
+        }
+
+        &_content {
+          width: 500px;
+          height: 500px;
+          position: relative;
+
+          &_local,
+          &_remote {
+            width: 100%;
+            height: 100%;
+
+            video {
+              width: 100%;
+              height: 100%;
+            }
+          }
+
+          &_remote {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            top: 0;
+            right: 0;
+          }
+        }
+      }
+      &_chatContainer {
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        width: 500px;
+        &_title {
+          font-size: 16px;
+          font-weight: bold;
+          margin-bottom: 10px;
+        }
+        &_acceptBlock {
+          width: 100%;
+          height: 400px;
+          border: 1px solid #d8d8d8;
+          border-bottom: unset;
+          padding: 10px;
+          background: #f9f9f9;
+          overflow: auto;
+          &_item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            &:last-child {
+              margin-bottom: 0;
+            }
+            .name {
+              padding: 5px 10px;
+              border-radius: 5px;
+              color: #fff;
+              background: #40a9ff;
+            }
+            .text {
+              margin-left: 20px;
+              background: #fff;
+              padding: 5px 10px;
+              border-radius: 5px;
+              box-shadow: 0 0 5px rgba(0, 0, 0, .3);
+              position: relative;
+              &::before {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: -8px;
+                transform: translateY(-50%);
+                border-right: 10px solid #fff;
+                border-top: 10px solid transparent;
+                border-bottom: 10px solid transparent;
+                filter: drop-shadow(-3px 0px 1px rgba(0, 0, 0, .1));
+              }
+            }
+            &.relative {
+              justify-content: flex-end;
+              .name {
+                order: 2;
+              }
+              .text {
+                order: 1;
+                margin-left: unset;
+                margin-right: 20px;
+                background: #95EC69;
+                &::before {
+                  content: '';
+                  position: absolute;
+                  top: 50%;
+                  left: unset;
+                  right: -8px;
+                  transform: translateY(-50%);
+                  border-right: unset;
+                  border-left: 10px solid #95EC69;
+                  filter: drop-shadow(3px 0px 1px rgba(0, 0, 0, .1));
+                }
+              }
+            }
+          }
+        }
+        &_sendBlock {
+          width: 100%;
+          height: 0;
+          flex: 1;
+          position: relative;
+          &_input {
+            width: 100%;
+            height: 100%;
+          }
+          &_btn {
+            position: absolute;
+            z-index: 2;
+            right: 10px;
+            bottom: 10px;
+            background: #04d104;
+            border: 1px solid #04d104;
+          }
+        }
+      }
+    }
+  }
+}
