@@ -29,7 +29,6 @@
       display: flex;
       &_videoContainer {
         padding: 10px;
-
         &_title {
           font-size: 16px;
           font-weight: bold;
@@ -40,6 +39,7 @@
           width: 500px;
           height: 500px;
           position: relative;
+          border: 1px solid #d8d8d8;
 
           &_local,
           &_remote {
@@ -87,8 +87,8 @@
               margin-bottom: 0;
             }
             .name {
-              padding: 5px 10px;
-              border-radius: 5px;
+              padding: 10px;
+              border-radius: 50%;
               color: #fff;
               background: #40a9ff;
             }
