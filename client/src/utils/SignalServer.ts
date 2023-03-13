@@ -1,6 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 
-let { PUBLICHOST, PUBLICPOINT, NODE_ENV } = process.env;
+let { REACT_APP_PUBLICHOST: host, REACT_APP_PUBLICPOINT: point } = process.env;
 interface Option {
   onConnect?: () => void,
   onJoined?: (message: { roomId: string; userNum: number }) => void;
@@ -21,7 +21,7 @@ export default class SignalServer {
   }
 
   init(option: Option) {
-    this.socket = io(option.serverUrl || NODE_ENV === 'development' ? 'http://127.0.0.1:8091/' : `http://${PUBLICHOST}:${PUBLICPOINT}/`);
+    this.socket = io(option.serverUrl || `http://${host}:${point}/`);
     this.socket.connect();
     this.socket.on(
       'connect', //判断socket是否已连接
