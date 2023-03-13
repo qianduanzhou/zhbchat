@@ -5,10 +5,10 @@ WORKDIR /app
 # 将应用程序代码复制到容器中
 COPY . .
 # 安装pm2
-RUN npm install pm2 -g
+RUN sudo npm install pm2 -g
 
 # 安装依赖
-RUN npm install --production
+RUN sudo npm install --production
 
 # 启动应用程序
 CMD ["pm2-runtime", "start", "ecosystem.config.js"]
