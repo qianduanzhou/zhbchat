@@ -1,5 +1,7 @@
 # 使用Node.js 14作为基础镜像
 FROM node:14
+# 暴露3000端口
+EXPOSE 3000
 # 设置工作目录
 WORKDIR /app
 # 将应用程序代码复制到容器中
