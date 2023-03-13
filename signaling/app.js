@@ -13,8 +13,7 @@ const userRoomInfo = {};
 
 //HTTP 服务
 let http_server = http.createServer(app);
-let host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1';
-http_server.listen(8091, host, () => {
+http_server.listen(8091, '0.0.0.0', () => {
   console.log('listening on *:8091');
 });
 
