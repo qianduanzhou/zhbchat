@@ -13,13 +13,13 @@ const userRoomInfo = {};
 
 //HTTP 服务
 let http_server = http.createServer(app);
-http_server.listen(8081, '127.0.0.1', () => {
-  console.log('listening on *:8081');
+http_server.listen(8091, '127.0.0.1', () => {
+  console.log('listening on *:8091');
 });
 
 const io = new Server(http_server, {
   cors: {
-    origin: ['http://127.0.0.1:3000', 'http://localhost:3000', 'http://192.168.20.245:3000'],
+    origin: ['http://127.0.0.1:8090', 'http://localhost:8090', 'http://175.178.107.242:8090'],
     credentials: true,
   },
 });

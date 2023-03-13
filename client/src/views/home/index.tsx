@@ -4,7 +4,15 @@ import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { Button, Input, message, Spin } from 'antd';
 import SignalServer from 'utils/SignalServer';
 const { TextArea } = Input;
-const pcOption = {};
+const pcOption = {
+  iceServers: [
+    {
+      urls: 'stun:175.178.107.242:3478',
+      username: 'admin',
+      credential: '78000'
+    }
+  ]
+};
 
 type State = 'socketDisConnected' | 'init' | 'disconnect' | 'waiting' | 'canCall' | 'connected';
 interface msgObj {
