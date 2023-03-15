@@ -21,6 +21,11 @@ interface msgObj {
   text: string
   isLocal: boolean
 }
+// 用于远端判断创建RTCPeerConnection
+let isConnectResolve = (val: unknown) => {}
+let isConnectPromise = new Promise((resolve, reject) => {
+  isConnectResolve = resolve;
+})
 const Home = () => {
   // 远端传递过来的媒体数据
   const remoteMediaStream = useRef<MediaStream>();
@@ -270,7 +275,7 @@ const Home = () => {
   const onGetRemoteOffer = async (offer: RTCSessionDescription) => {
     console.log('------ 获取到了远端offer', offer);
     await connectFunc();
-
+    isConnectResolve('');
     const pc = peerConnection.current;
     // 绑定远端sdp
     pc?.setRemoteDescription(offer);
@@ -299,9 +304,9 @@ const Home = () => {
   };
 
   // 获取到远端的candidate
-  const onGetRemoteCandidate = (candidate: RTCIceCandidateInit | RTCIceCandidate) => {
+  const onGetRemoteCandidate = async (candidate: RTCIceCandidateInit | RTCIceCandidate) => {
     console.log('------ 获取到了远端candidate', candidate);
-
+    await isConnectPromise;
     peerConnection?.current?.addIceCandidate(candidate);
   };
 
