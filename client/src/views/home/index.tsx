@@ -7,9 +7,9 @@ const { TextArea } = Input;
 const pcOption = {
   iceServers: [
     {
-      urls: 'stun:175.178.107.242:3478',
+      urls: 'turn:175.178.107.242:3478',
       username: 'admin',
-      credential: '78000'
+      credential: '123456'
     }
   ]
 };
