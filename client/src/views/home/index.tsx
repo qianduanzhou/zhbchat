@@ -168,6 +168,7 @@ const Home = () => {
     initPeerConnection();
     await getLocalMediaStream();
     setConnectLoading(false);
+    isConnectResolve('');
     return Promise.resolve('connected');
   }
 
@@ -214,7 +215,6 @@ const Home = () => {
   const call = async () => {
     if (state !== 'canCall') return;
     await connectFunc();
-
     // 开始建立连接
     const pc = peerConnection.current;
     // 获取本地sdp(offer)
@@ -286,31 +286,27 @@ const Home = () => {
     pc?.createAnswer().then(answer => {
       // 绑定本地sdp
       pc.setLocalDescription(answer);
-
       console.log('------ 获取到了本地answer', answer);
       // 发送本地sdp到远端
       signalServer?.current?.send({
         type: 'answer',
         value: answer,
       });
-      isConnectResolve('');
     });
   };
 
   // 获取远端answer
   const onGetRemoteAnswer = (answer: RTCSessionDescription) => {
     console.log('------ 获取到了远端answer', answer);
-
     const pc = peerConnection.current;
-
     // 绑定远端sdp
     pc?.setRemoteDescription(answer);
   };
 
   // 获取到远端的candidate
   const onGetRemoteCandidate = async (candidate: RTCIceCandidateInit | RTCIceCandidate) => {
-    console.log('------ 获取到了远端candidate', candidate);
     await isConnectPromise;
+    console.log('------ 获取到了远端candidate', candidate);
     peerConnection?.current?.addIceCandidate(candidate);
   };
 
