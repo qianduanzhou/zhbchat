@@ -168,7 +168,6 @@ const Home = () => {
     initPeerConnection();
     await getLocalMediaStream();
     setConnectLoading(false);
-    isConnectResolve('');
     return Promise.resolve('connected');
   }
 
@@ -282,6 +281,7 @@ const Home = () => {
     const pc = peerConnection.current;
     // 绑定远端sdp
     pc?.setRemoteDescription(offer);
+    isConnectResolve('');
     // 创建本地sdp
     pc?.createAnswer().then(answer => {
       // 绑定本地sdp
@@ -301,6 +301,7 @@ const Home = () => {
     const pc = peerConnection.current;
     // 绑定远端sdp
     pc?.setRemoteDescription(answer);
+    isConnectResolve('');
   };
 
   // 获取到远端的candidate
