@@ -21,10 +21,10 @@ interface msgObj {
   text: string
   isLocal: boolean
 }
-// 用于远端判断创建RTCPeerConnection
-let isConnectResolve = (val: unknown) => {}
-let isConnectPromise = new Promise((resolve, reject) => {
-  isConnectResolve = resolve;
+// 用于判断是否设置远端SDP
+let isSetRemoteSdpResolve = (val: unknown) => {}
+let isSetRemoteSdpPromise = new Promise((resolve, reject) => {
+  isSetRemoteSdpResolve = resolve;
 })
 const Home = () => {
   // 远端传递过来的媒体数据
@@ -281,7 +281,7 @@ const Home = () => {
     const pc = peerConnection.current;
     // 绑定远端sdp
     pc?.setRemoteDescription(offer);
-    isConnectResolve('');
+    isSetRemoteSdpResolve('');
     // 创建本地sdp
     pc?.createAnswer().then(answer => {
       // 绑定本地sdp
@@ -301,12 +301,12 @@ const Home = () => {
     const pc = peerConnection.current;
     // 绑定远端sdp
     pc?.setRemoteDescription(answer);
-    isConnectResolve('');
+    isSetRemoteSdpResolve('');
   };
 
   // 获取到远端的candidate
   const onGetRemoteCandidate = async (candidate: RTCIceCandidateInit | RTCIceCandidate) => {
-    await isConnectPromise;
+    await isSetRemoteSdpPromise;
     console.log('------ 获取到了远端candidate', candidate);
     peerConnection?.current?.addIceCandidate(candidate);
   };
