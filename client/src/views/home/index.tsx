@@ -109,7 +109,7 @@ const Home = () => {
       console.log('当前对等连接状态', pc.connectionState)
       if (pc.connectionState === 'connected') {
         setState('connected');
-      } else if (pc.connectionState === 'disconnected') {
+      } else if (['disconnected', 'failed'].includes(pc.connectionState)) {
         unCall();
       }
     });
@@ -136,8 +136,12 @@ const Home = () => {
     return new Promise((resolve, reject) => {
       navigator.mediaDevices.getUserMedia({
         audio: false, video: {
-          width: 500,
-          height: 500
+          width: {
+            ideal: 500
+          },
+          height: {
+            ideal: 500
+          },
         }
       }).then(mediaStream => {
         console.log('------ 成功获取本地设备媒体数据:', mediaStream);
@@ -275,7 +279,6 @@ const Home = () => {
   const onGetRemoteOffer = async (offer: RTCSessionDescription) => {
     console.log('------ 获取到了远端offer', offer);
     await connectFunc();
-    isConnectResolve('');
     const pc = peerConnection.current;
     // 绑定远端sdp
     pc?.setRemoteDescription(offer);
@@ -290,6 +293,7 @@ const Home = () => {
         type: 'answer',
         value: answer,
       });
+      isConnectResolve('');
     });
   };
 
