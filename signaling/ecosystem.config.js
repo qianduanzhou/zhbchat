@@ -1,7 +1,7 @@
 module.exports = {
   apps : [{
     name: 'zhbchat-signaling',
-    script: 'app.js',
+    script: 'npm run start',
     env: {
       NODE_ENV: 'production'
     }
