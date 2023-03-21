@@ -21,10 +21,10 @@ interface msgObj {
   text: string
   isLocal: boolean
 }
-// 用于远端判断创建RTCPeerConnection
-let isConnectResolve = (val: unknown) => {}
-let isConnectPromise = new Promise((resolve, reject) => {
-  isConnectResolve = resolve;
+// 用于判断是否设置远端SDP
+let isSetRemoteSdpResolve = (val: unknown) => {}
+let isSetRemoteSdpPromise = new Promise((resolve, reject) => {
+  isSetRemoteSdpResolve = resolve;
 })
 const Home = () => {
   // 远端传递过来的媒体数据
@@ -109,7 +109,7 @@ const Home = () => {
       console.log('当前对等连接状态', pc.connectionState)
       if (pc.connectionState === 'connected') {
         setState('connected');
-      } else if (pc.connectionState === 'disconnected') {
+      } else if (['disconnected', 'failed'].includes(pc.connectionState)) {
         unCall();
       }
     });
@@ -136,8 +136,12 @@ const Home = () => {
     return new Promise((resolve, reject) => {
       navigator.mediaDevices.getUserMedia({
         audio: false, video: {
-          width: 500,
-          height: 500
+          width: {
+            ideal: 500
+          },
+          height: {
+            ideal: 500
+          },
         }
       }).then(mediaStream => {
         console.log('------ 成功获取本地设备媒体数据:', mediaStream);
@@ -210,7 +214,6 @@ const Home = () => {
   const call = async () => {
     if (state !== 'canCall') return;
     await connectFunc();
-
     // 开始建立连接
     const pc = peerConnection.current;
     // 获取本地sdp(offer)
@@ -275,15 +278,14 @@ const Home = () => {
   const onGetRemoteOffer = async (offer: RTCSessionDescription) => {
     console.log('------ 获取到了远端offer', offer);
     await connectFunc();
-    isConnectResolve('');
     const pc = peerConnection.current;
     // 绑定远端sdp
     pc?.setRemoteDescription(offer);
+    isSetRemoteSdpResolve('');
     // 创建本地sdp
     pc?.createAnswer().then(answer => {
       // 绑定本地sdp
       pc.setLocalDescription(answer);
-
       console.log('------ 获取到了本地answer', answer);
       // 发送本地sdp到远端
       signalServer?.current?.send({
@@ -296,17 +298,16 @@ const Home = () => {
   // 获取远端answer
   const onGetRemoteAnswer = (answer: RTCSessionDescription) => {
     console.log('------ 获取到了远端answer', answer);
-
     const pc = peerConnection.current;
-
     // 绑定远端sdp
     pc?.setRemoteDescription(answer);
+    isSetRemoteSdpResolve('');
   };
 
   // 获取到远端的candidate
   const onGetRemoteCandidate = async (candidate: RTCIceCandidateInit | RTCIceCandidate) => {
+    await isSetRemoteSdpPromise;
     console.log('------ 获取到了远端candidate', candidate);
-    await isConnectPromise;
     peerConnection?.current?.addIceCandidate(candidate);
   };
 
